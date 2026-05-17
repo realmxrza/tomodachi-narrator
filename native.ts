@@ -1,7 +1,7 @@
 import { ConnectSrc, CspPolicies } from "@main/csp";
 import { IpcMainInvokeEvent } from "electron";
 
-// whitelist the talkmodachi host so renderer can also hit it directly if it wants
+
 CspPolicies["talkmodachi.dylanpdx.io"] = ConnectSrc;
 
 export async function fetchTtsAudio(_: IpcMainInvokeEvent, url: string): Promise<{
