@@ -58,7 +58,6 @@ function pickName(userId: string, guildId: string | null): string {
     }
 }
 
-// for the local user, channelId and oldChannelId are the same when moving — track it ourselves
 let myLastChannelId: string | undefined;
 
 function getTypeAndChannelId({ channelId, oldChannelId }: VoiceState, isMe: boolean) {
@@ -93,7 +92,7 @@ function playSample(type: string) {
 
 export default definePlugin({
     name: "Tomodachi Narrator",
-    description: "Tomodachi Life style narrator for voice channels. Plays locally only — nobody else in the call hears it. Voice presets, full customisation, auto intonation 1-4 switching.",
+    description: "Tomodachi Life narrator for voice channels. Client Sided",
     tags: ["Voice", "Accessibility"],
     authors: [{ name: "realmxrza", id: 693703872937590826n }],
     reporterTestable: ReporterTestable.None,
