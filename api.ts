@@ -7,7 +7,6 @@ import { settings } from "./settings";
 const logger = new Logger("TomodachiNarrator");
 const API_BASE = "https://talkmodachi.dylanpdx.io/tts";
 
-// on desktop, route fetch through main process so Discord's CSP doesn't block us
 const Native = (typeof VencordNative !== "undefined"
     ? (VencordNative.pluginHelpers as any)?.["Tomodachi Narrator"]
     : undefined) as PluginNative<typeof import("./native")> | undefined;
