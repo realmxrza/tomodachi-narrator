@@ -60,9 +60,9 @@ export const settings = definePluginSettings({
 
     volume: {
         type: OptionType.SLIDER,
-        description: "Playback volume",
+        description: "Playback volume (1 = normal, 2 = double)",
         default: 1,
-        markers: [0, 0.25, 0.5, 0.75, 1],
+        markers: [0, 0.5, 1, 1.5, 2],
         stickToMarkers: false
     },
 

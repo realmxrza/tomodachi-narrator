@@ -11,10 +11,16 @@ const Native = (typeof VencordNative !== "undefined"
     ? (VencordNative.pluginHelpers as any)?.["Tomodachi Narrator"]
     : undefined) as PluginNative<typeof import("./native")> | undefined;
 
-let currentAudio: HTMLAudioElement | null = null;
+let audioCtx: AudioContext | null = null;
+let currentSource: AudioBufferSourceNode | null = null;
 let toneCounter = 0;
 let lastRandomTone = 0;
 let isSpeaking = false;
+
+function getCtx(): AudioContext {
+    if (!audioCtx) audioCtx = new AudioContext();
+    return audioCtx;
+}
 
 interface QueueItem {
     text: string;
@@ -72,12 +78,16 @@ function buildVoiceParams(eventType?: string): VoiceParams {
     const usePreset = !!s.usePreset;
     const preset = usePreset ? BUILTIN_PRESETS[s.preset as string] : null;
 
+    // API rejects floats — slider can give us things like 50.3
+    const pick = (presetVal: number, custom: any) =>
+        Math.round(clamp(preset ? presetVal : Number(custom), 0, 100));
+
     return {
-        pitch:   clamp(preset ? preset.pitch   : Number(s.pitch),   0, 100),
-        speed:   clamp(preset ? preset.speed   : Number(s.speed),   0, 100),
-        quality: clamp(preset ? preset.quality : Number(s.quality), 0, 100),
-        tone:    clamp(preset ? preset.tone    : Number(s.tone),    0, 100),
-        accent:  clamp(preset ? preset.accent  : Number(s.accent),  0, 100),
+        pitch:   pick(preset?.pitch   ?? 0, s.pitch),
+        speed:   pick(preset?.speed   ?? 0, s.speed),
+        quality: pick(preset?.quality ?? 0, s.quality),
+        tone:    pick(preset?.tone    ?? 0, s.tone),
+        accent:  pick(preset?.accent  ?? 0, s.accent),
         intonation: resolveTone(eventType)
     };
 }
@@ -89,9 +99,9 @@ export function resetToneCounter() {
 
 export function stopAll() {
     queue.length = 0;
-    if (currentAudio) {
-        try { currentAudio.pause(); } catch { /* ignore */ }
-        currentAudio = null;
+    if (currentSource) {
+        try { currentSource.stop(); } catch { /* already stopped */ }
+        currentSource = null;
     }
     isSpeaking = false;
 }
@@ -158,25 +168,35 @@ async function playOne(text: string, eventType?: string): Promise<void> {
     url.searchParams.set("intonation", String(params.intonation));
 
     const blob = await fetchAudioBlob(url.toString());
-    const objUrl = URL.createObjectURL(blob);
+    const arrBuf = await blob.arrayBuffer();
+
+    const ctx = getCtx();
+    if (ctx.state === "suspended") {
+        try { await ctx.resume(); } catch { /* ignore */ }
+    }
+
+    const buf = await ctx.decodeAudioData(arrBuf.slice(0));
+
+    // Web Audio gain lets volume go past 1.0, unlike <audio>.volume
+    const gain = ctx.createGain();
+    gain.gain.value = clamp(Number(s.volume), 0, 2);
+
+    const source = ctx.createBufferSource();
+    source.buffer = buf;
+    source.connect(gain).connect(ctx.destination);
+
+    currentSource = source;
 
     await new Promise<void>(resolve => {
-        const audio = new Audio(objUrl);
-        currentAudio = audio;
-        audio.volume = clamp(Number(s.volume), 0, 1);
-        const cleanup = () => {
-            URL.revokeObjectURL(objUrl);
-            if (currentAudio === audio) currentAudio = null;
+        source.onended = () => {
+            if (currentSource === source) currentSource = null;
             resolve();
         };
-        audio.onended = cleanup;
-        audio.onerror = () => {
-            logger.warn("Audio element reported an error during playback");
-            cleanup();
-        };
-        audio.play().catch(err => {
-            logger.error("audio.play() rejected:", err);
-            cleanup();
-        });
+        try {
+            source.start(0);
+        } catch (e) {
+            logger.error("source.start failed:", e);
+            resolve();
+        }
     });
 }
