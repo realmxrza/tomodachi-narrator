@@ -8,7 +8,6 @@ export interface VoicePreset {
     intonation: number;
 }
 
-// values mirror dylanpdx/talkmodachi (web/manageVoices.js)
 export const BUILTIN_PRESETS: Record<string, VoicePreset> = {
     youngm: { name: "Young Man",   pitch: 60, speed: 59, quality: 72, tone: 25, accent: 25, intonation: 1 },
     youngf: { name: "Young Woman", pitch: 83, speed: 65, quality: 78, tone: 25, accent: 25, intonation: 1 },
