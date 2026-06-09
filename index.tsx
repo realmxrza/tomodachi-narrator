@@ -94,7 +94,7 @@ export default definePlugin({
     name: "Tomodachi Narrator",
     description: "Tomodachi Life narrator for voice channels. Client Sided",
     tags: ["Voice", "Accessibility"],
-    authors: [{ name: "realmxrza", id: 693703872937590826n }],
+    authors: [{ name: "realmxrza", id: 1348602887986745385n }],
     reporterTestable: ReporterTestable.None,
 
     settings,
