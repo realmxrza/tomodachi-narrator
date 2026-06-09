@@ -49,7 +49,7 @@ function resolveTone(eventType?: string): number {
             toneCounter = (toneCounter % 4) + 1;
             return toneCounter;
         case "random": {
-            // Avoid immediately repeating the same tone
+            
             let pick = Math.floor(Math.random() * 4) + 1;
             if (pick === lastRandomTone) pick = (pick % 4) + 1;
             lastRandomTone = pick;
@@ -78,7 +78,6 @@ function buildVoiceParams(eventType?: string): VoiceParams {
     const usePreset = !!s.usePreset;
     const preset = usePreset ? BUILTIN_PRESETS[s.preset as string] : null;
 
-    // API rejects floats — slider can give us things like 50.3
     const pick = (presetVal: number, custom: any) =>
         Math.round(clamp(preset ? presetVal : Number(custom), 0, 100));
 
@@ -177,7 +176,6 @@ async function playOne(text: string, eventType?: string): Promise<void> {
 
     const buf = await ctx.decodeAudioData(arrBuf.slice(0));
 
-    // Web Audio gain lets volume go past 1.0, unlike <audio>.volume
     const gain = ctx.createGain();
     gain.gain.value = clamp(Number(s.volume), 0, 2);
 
