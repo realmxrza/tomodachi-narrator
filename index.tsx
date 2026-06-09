@@ -105,7 +105,6 @@ export default definePlugin({
             const myChan = SelectedChannelStore.getVoiceChannelId();
             const myId = UserStore.getCurrentUser().id;
 
-            // stage channels — skip, narrating those would just be noise
             if (ChannelStore.getChannel(myChan!)?.type === 13) return;
 
             for (const state of voiceStates) {
